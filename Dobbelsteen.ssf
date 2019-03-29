@@ -1,0 +1,118 @@
+Program Dobbelsteen
+
+use
+	"Math"
+end
+
+purecode "WebJs","var dice=[]"
+
+import "document.getElementById('scyndi_body').innerHTML" var Body:string
+import "document.getElementById('scyndi_head').innerHTML" var Head:string
+
+import "parseInt" function val:integer string
+
+var 
+   Entire_Doc:String {Unfortunately this must be global or the parser cannot fully take this}
+   Dice:array integer
+   TempBody:string
+end
+
+def NumDiceKinds:integer
+	purecode "WebJS","return $C{DICE}C$.length"
+end
+
+void ElSet key:string,value:string
+	purecode "WebJS","document.getElementById($C{KEY}C$).innerHTML = $C{VALUE}C$;"
+end
+
+def ElGet key:string
+	purecode "WebJS","return document.getElementById($C{KEY}C$).innerHTML;"
+end
+
+def ElInp key:string
+	purecode "WebJS","return document.getElementById($C{KEY}C$).value;"
+end
+
+void ElAdd key:string,value:string
+	var work:string; work = ElGet(Key)
+	work = work + value
+	ElSet key,work
+end
+
+void Roll
+	writeln "Let's Roll!"
+	var GrandTotal:integer = 0	
+	var kinds; kinds=NumDiceKinds()
+	var subtot:integer;
+	foru i=0,kinds
+		var dout:string;dout:="dout"+Dice[i]
+		var dtot:string;dtot:="dtot"+Dice[i]
+		var d:string;   d   :="d"   +Dice[i]
+		elset dout,""
+		elset dtot,""
+		var swant:string; swant=ElInp(d)
+		var want:integer;want = val(swant)
+		subtot=0;
+		writeln "Rolling "+d+";","want="+want+"<"+swant
+		for j=1,want
+			var droll; droll=rand(1,Dice[i])
+			writeln "roll #"+j,"Rolled: "+droll
+			if j<>1; eladd dout,"; "; end
+			eladd dout,droll
+			subtot = subtot + droll
+		end
+		grandtotal = grandtotal + subtot
+	end
+	ElSet "totaal",grandtotal	
+end
+
+def JSRoll:string
+	purecode "WebJS","return '$C{ROLL}C$';"
+end
+
+
+Void HTML_Template
+    WriteLn "Let's set the header"
+    { "<!DOCTYPE html>\n<html>\n\t}
+    Head = "\n\t\t<title>Dobbelsteen</title>\t\t\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n<meta http-equiv=\"Content-language\" content=\"en\"/>\n"
+    Head = head + "\t<style>body{ color:rgb(180,0,255); background-color: rgb(18,0,25); } input{ color: rgb(0,180,0); background-color: rgb(0,18,25); }</style>\n"
+    {Head = head + "</head>\n"
+    Head = Head + "<body id=scyndi_body></body>"}
+    purecode "WebJS","document.write($C{ENTIRE_DOC}C$);"
+end
+
+Void BodyPrint s:string
+	tempbody=tempbody+s
+	Writeln "BodyPrint: ",s
+end
+
+Void BodyPush
+     body = body + tempbody
+end
+     
+
+Void Make_D d:string
+	BodyPrint "<tr><td align=right>d"+d+"</td><td><input id='d"+d+"'></td><td id='dout"+d+"'></td><td id='dtot"+d+"'></td></tr>"
+	purecode "WebJS","$C{DICE}C$.push(parseInt($C{D}C$));"
+end
+
+Void Dobbel_Setup
+	var JSR:string
+	JSR = JSRoll()
+	bodyprint "<table><caption>Dice</caption>"
+	bodyprint "<tr><td>Die</td><td>Amount</td><td>Rolls</td><td>Totals</td><td rowspan=8><input type=submit value=Roll OnClick='"+JSR+"();'></td></tr>"
+	for i,2,10,2
+		Make_D i
+	end
+	Make_D 20
+	Make_D 30
+	Make_D 100
+	bodyprint "<tr><td align=right colspan=3>Total:</td><td id=totaal></td></tr>"
+	bodyprint "</table>"
+	bodypush
+end
+
+Void Main
+	HTML_Template
+	Dobbel_Setup
+end
