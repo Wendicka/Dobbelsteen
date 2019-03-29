@@ -1,26 +1,36 @@
 Program Dobbelsteen
+{Coded by Jeroen Broks}
+{(c) Jeroen Broks}
+{Released under the terms of the GPL 3}
 
+
+{ The Math unit/module is require to make this work }
 use
 	"Math"
 end
 
-purecode "WebJs","var dice=[]"
-
+{Import can take over entire identifiers from the target language. 
+And in the way JavaScript has set this up, it's easy to pretend that they are just Scyndi variables
+Scyndi doesn't see the difference, really, but JavaScript still does, and that's why this works.
+Please note, import should only be used by those who do know how the target language works.}
 import "document.getElementById('scyndi_body').innerHTML" var Body:string
 import "document.getElementById('scyndi_head').innerHTML" var Head:string
 
+{Just needed for quick usage, that's all}
 import "parseInt" function val:integer string
 
+{ Global variables.}
 var 
-   Entire_Doc:String {Unfortunately this must be global or the parser cannot fully take this}
    Dice:array integer
    TempBody:string
 end
 
+{Was just the quickest way to get the array length}
 def NumDiceKinds:integer
 	purecode "WebJS","return $C{DICE}C$.length"
 end
 
+{ Quick element modification and readout functions }
 void ElSet key:string,value:string
 	purecode "WebJS","document.getElementById($C{KEY}C$).innerHTML = $C{VALUE}C$;"
 end
@@ -39,6 +49,7 @@ void ElAdd key:string,value:string
 	ElSet key,work
 end
 
+{ Roll the dice }
 void Roll
 	writeln "Let's Roll!"
 	var GrandTotal:integer = 0	
@@ -66,42 +77,50 @@ void Roll
 	ElSet "totaal",grandtotal	
 end
 
+{ Dirty code straight from hell, but as Scyndi is still a bit premature, this will have to do.
+  I must plan a more elegant way to do this}
 def JSRoll:string
 	purecode "WebJS","return '$C{ROLL}C$';"
 end
 
-
+{As the name of this function suggest, we'll be setting up the HTML template right here.}
 Void HTML_Template
     WriteLn "Let's set the header"
-    { "<!DOCTYPE html>\n<html>\n\t}
+    {Now Scyndi won't see the difference between Head as a real variable or the object construction in JavaScript it's been tied to. It just translates, and that's all. Cool, huh?}
     Head = "\n\t\t<title>Dobbelsteen</title>\t\t\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n<meta http-equiv=\"Content-language\" content=\"en\"/>\n"
     Head = head + "\t<style>body{ color:rgb(180,0,255); background-color: rgb(18,0,25); } input{ color: rgb(0,180,0); background-color: rgb(0,18,25); }</style>\n"
-    {Head = head + "</head>\n"
-    Head = Head + "<body id=scyndi_body></body>"}
-    purecode "WebJS","document.write($C{ENTIRE_DOC}C$);"
+    BodyPrint "This is just a simple web application which you can use to throw any number of dice. Just put in the number of dice in each field you wanna roll and click roll to go for it<p>"
+    BodyPrint "This program has been coded in Scyndi and the source code can be found <a href='https://github.com/Wendicka/Dobbelsteen' target=_blank>here</a><p>"
 end
 
+{ Will put stuff into the body of the HTML file. As tables mess up when not sent in once by JavaScript, a temp variable now does the job }
 Void BodyPrint s:string
 	tempbody=tempbody+s
 	Writeln "BodyPrint: ",s
 end
 
+{ And now let's dump everything BodyPrint gave us to the actual HTML body }
 Void BodyPush
      body = body + tempbody
+     tempbody = ""
 end
      
 
+{ Let's create a die }
 Void Make_D d:string
 	BodyPrint "<tr><td align=right>d"+d+"</td><td><input id='d"+d+"'></td><td id='dout"+d+"'></td><td id='dtot"+d+"'></td></tr>"
 	purecode "WebJS","$C{DICE}C$.push(parseInt($C{D}C$));"
 end
 
+{ Let's set up all dice accordingly }
 Void Dobbel_Setup
 	var JSR:string
 	JSR = JSRoll()
 	bodyprint "<table><caption>Dice</caption>"
 	bodyprint "<tr><td>Die</td><td>Amount</td><td>Rolls</td><td>Totals</td><td rowspan=8><input type=submit value=Roll OnClick='"+JSR+"();'></td></tr>"
-	for i,2,10,2
+      { A normal fantasy set of dice contains a d4, a d6, a d8, two d10 (a regular d10 and a d10 with all values x10, in order to create a d100), a d12 and a d20. Some (luxury sets) have a d30
+	  a d2 is often done by either tossing a coin, or by rolling a d4 or d6 deeming the odd numbers 1 and the even numbers as 2, but as a computer can easily create a "real" d2, we'll go for that }
+	for i,2,12,2
 		Make_D i
 	end
 	Make_D 20
@@ -112,6 +131,7 @@ Void Dobbel_Setup
 	bodypush
 end
 
+{ Let's rock and roll }
 Void Main
 	HTML_Template
 	Dobbel_Setup
